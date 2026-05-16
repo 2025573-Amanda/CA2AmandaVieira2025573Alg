@@ -8,6 +8,6 @@ package com.mycompany.ca2_app;
  *
  * @author home
  */
-public class SortingService {
+public class SortingServiceApplicants {
     
 }
