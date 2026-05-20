@@ -1,7 +1,7 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package com.mycompany.ca2_app;
 
 import java.util.ArrayList;
@@ -11,65 +11,90 @@ import java.util.Scanner;
 /**
  * Main application logic for the CA2 Bank Management System.
  * This class provides a menu that allows the user to:
- * - Load applicants from file
+ * - Import applicants from file
  * - Sort applicants
  * - Search applicants
- * - Create a Binary Tree of Employees
- * - Print the Binary Tree
+ * - Add new employees
+ * - Generate a Binary Tree of Employees
+ * - Print the Binary Tree (In-Order / Level-Order)
+ * - Show tree height and node count
  */
 public class CA2_App {
-    
+
     private List<Applicant> applicants = new ArrayList<>();
     private BinaryTree employeeTree = new BinaryTree();
     private Scanner scanner = new Scanner(System.in);
-     /**
-     * Displays the main menu and handles user input.
+
+    /**
+     * Starts the main menu using MenuOptionEnum.
+     * The menu is generated dynamically based on the ENUM values.
      */
-    
     public void start() {
-        int choice;
 
-        do {
-            System.out.println("\n===== CA2 BANK MANAGEMENT SYSTEM =====");
-            System.out.println("1. Load Applicants from File");
-            System.out.println("2. Sort Applicants by Name");
-            System.out.println("3. Search Applicant by Name (Binary Search)");
-            System.out.println("4. Search Applicant by Email");
-            System.out.println("5. Search Applicants by Department");
-            System.out.println("6. Create Binary Tree of Employees");
-            System.out.println("7. Print Binary Tree (In-Order)");
-            System.out.println("0. Exit");
-            System.out.print("Enter your choice: ");
+       while (true) {
+            System.out.println("\n=========================================");
+            System.out.println("      BANK EMPLOYEE MANAGEMENT SYSTEM");
+            System.out.println("=========================================");
 
-            choice = Integer.parseInt(scanner.nextLine());
-
-            switch (choice) {
-                case 1 -> loadApplicants();
-                case 2 -> sortApplicants();
-                case 3 -> searchByName();
-                case 4 -> searchByEmail();
-                case 5 -> searchByDepartment();
-                case 6 -> createBinaryTree();
-                case 7 -> printBinaryTree();
-                case 0 -> System.out.println("Exiting system...");
-                default -> System.out.println("Invalid option. Try again.");
+            for (MenuOptionEnum option : MenuOptionEnum.values()) {
+                System.out.println((option.ordinal() + 1) + ". " + option);
             }
 
-        } while (choice != 0);
+            System.out.print("\nSelect an option: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            if (choice < 1 || choice > MenuOptionEnum.values().length) {
+                System.out.println("Invalid option. Try again.");
+                continue;
+            }
+
+            MenuOptionEnum selected = MenuOptionEnum.values()[choice - 1];
+
+            switch (selected) {
+
+                case IMPORT_APPLICANTS -> loadApplicants();
+                case SORT_APPLICANTS -> sortApplicants();
+                case SEARCH_APPLICANTS -> searchByName();
+                case ADD_NEW_EMPLOYEE -> addEmployee();
+                case GENERATE_BINARY_TREE -> createBinaryTree();
+
+                case PRINT_TREE_IN_ORDER -> {
+                    System.out.println("\n--- Binary Tree (In-Order Traversal) ---");
+                    employeeTree.printInOrder();
+                }
+
+                case PRINT_TREE_LEVEL_ORDER -> {
+                    System.out.println("\n--- Binary Tree (Level-Order Traversal) ---");
+                    employeeTree.printLevelOrder();
+                }
+
+                case SHOW_TREE_HEIGHT -> {
+                    System.out.println("\nTree Height: " + employeeTree.getHeight());
+                }
+
+                case SHOW_NODE_COUNT -> {
+                    System.out.println("\nTotal Nodes in Tree: " + employeeTree.getNodeCount());
+                }
+
+                case EXIT_SYSTEM -> {
+                    System.out.println("Exiting system...");
+                    return;
+                }
+            }
+        }
     }
 
     /**
-     * Loads applicants from the text file using FileReaderService.
+     * Loads applicants from the text file.
      */
     private void loadApplicants() {
         FileReaderService service = new FileReaderService();
         applicants = service.readApplicants();
-
         System.out.println("\nApplicants loaded: " + applicants.size());
     }
 
     /**
-     * Sorts applicants alphabetically by full name.
+     * Sorts applicants alphabetically and prints the first 20.
      */
     private void sortApplicants() {
         if (applicants.isEmpty()) {
@@ -77,12 +102,18 @@ public class CA2_App {
             return;
         }
 
-        SortingServiceApplicants.mergeSort(applicants, 0, applicants.size() - 1);
+        applicants = SortingServiceApplicants.sortByName(applicants);
         System.out.println("Applicants sorted successfully.");
+
+        System.out.println("\n--- First 20 Applicants (Sorted Alphabetically) ---");
+
+        for (int i = 0; i < Math.min(20, applicants.size()); i++) {
+            System.out.println((i + 1) + ". " + applicants.get(i).getFullName());
+        }
     }
 
     /**
-     * Searches for an applicant by name using recursive binary search.
+     * Searches for an applicant by name.
      */
     private void searchByName() {
         if (applicants.isEmpty()) {
@@ -103,50 +134,7 @@ public class CA2_App {
     }
 
     /**
-     * Searches for an applicant by email using linear search.
-     */
-    private void searchByEmail() {
-        if (applicants.isEmpty()) {
-            System.out.println("No applicants loaded.");
-            return;
-        }
-
-        System.out.print("Enter email to search: ");
-        String email = scanner.nextLine();
-
-        Applicant result = SearchingServiceApplicants.searchByEmail(applicants, email);
-
-        if (result == null) {
-            System.out.println("Applicant not found.");
-        } else {
-            System.out.println("Applicant found: " + result);
-        }
-    }
-
-    /**
-     * Searches for applicants by department using stream filtering.
-     */
-    private void searchByDepartment() {
-        if (applicants.isEmpty()) {
-            System.out.println("No applicants loaded.");
-            return;
-        }
-
-        System.out.print("Enter department: ");
-        String dept = scanner.nextLine();
-
-        List<Applicant> results = SearchingServiceApplicants.searchByDepartment(applicants, dept);
-
-        if (results.isEmpty()) {
-            System.out.println("No applicants found in this department.");
-        } else {
-            System.out.println("Applicants found:");
-            results.forEach(System.out::println);
-        }
-    }
-
-    /**
-     * Creates a Binary Tree of Employees using the loaded applicants.
+     * Creates a Binary Tree of Employees.
      */
     private void createBinaryTree() {
         if (applicants.isEmpty()) {
@@ -155,11 +143,17 @@ public class CA2_App {
         }
 
         for (Applicant a : applicants) {
+
+            Manager manager = new Manager(a.getFullName(), ManagerTypeEnum.JUNIOR);
+            Department department = new Department(DepartmentType.CUSTOMER_SERVICE.name(), DepartmentType.CUSTOMER_SERVICE);
+
             Employee emp = new Employee(
                     a.getFullName(),
-                    ManagerType.JUNIOR, // default for CA2
-                    DepartmentType.IT   // default for CA2
+                    a.getEmail(),
+                    manager,
+                    department
             );
+
             employeeTree.insert(emp);
         }
 
@@ -167,12 +161,81 @@ public class CA2_App {
     }
 
     /**
-     * Prints the Binary Tree in alphabetical order.
+     * VALIDATION: Ask for a valid Manager Type.
      */
-    private void printBinaryTree() {
-        System.out.println("\n===== EMPLOYEE BINARY TREE =====");
-        employeeTree.printInOrder();
+    private ManagerTypeEnum askManagerType() {
+        while (true) {
+            System.out.println("\nSelect Manager Type:");
+            for (ManagerTypeEnum type : ManagerTypeEnum.values()) {
+                System.out.println("- " + type);
+            }
+
+            System.out.print("Enter manager type: ");
+            String input = scanner.nextLine().trim().toUpperCase();
+
+            try {
+                return ManagerTypeEnum.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid manager type. Please try again.");
+            }
+        }
+    }
+
+    /**
+     * VALIDATION: Ask for a valid Department Type.
+     */
+    private DepartmentType askDepartmentType() {
+        while (true) {
+            System.out.println("\nSelect Department:");
+            for (DepartmentType dept : DepartmentType.values()) {
+                System.out.println("- " + dept);
+            }
+
+            System.out.print("Enter department: ");
+            String input = scanner.nextLine().trim().toUpperCase();
+
+            try {
+                return DepartmentType.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid department. Please try again.");
+            }
+        }
+    }
+
+    /**
+     * Adds a new employee with full validation.
+     */
+    private void addEmployee() {
+
+        System.out.println("\n===== ADD NEW EMPLOYEE =====");
+
+        System.out.print("Enter full name: ");
+        String fullName = scanner.nextLine();
+
+        System.out.print("Enter email: ");
+        String email = scanner.nextLine();
+
+        ManagerTypeEnum managerType = askManagerType();
+        DepartmentType departmentType = askDepartmentType();
+
+        Manager manager = new Manager(fullName, managerType);
+        Department department = new Department(departmentType.name(), departmentType);
+
+        Employee employee = new Employee(fullName, email, manager, department);
+
+        applicants.add(new Applicant(
+                fullName.split(" ")[0],
+                fullName.contains(" ") ? fullName.substring(fullName.indexOf(" ") + 1) : "",
+                "N/A",
+                email,
+                0.0,
+                departmentType.name(),
+                managerType.name(),
+                "N/A",
+                "N/A"
+        ));
+
+        System.out.println("\nEmployee added successfully:");
+        System.out.println(employee);
     }
 }
-    
-
