@@ -8,6 +8,11 @@ package com.mycompany.ca2_app;
  *
  * @author home
  */
-public class MenuOptionEnum {
-    
+public enum MenuOptionEnum {
+    IMPORT_APPLICANTS,
+    SORT_APPLICANTS,
+    SEARCH_APPLICANTS,
+    ADD_NEW_EMPLOYEE,
+    GENERATE_BINARY_TREE,
+    EXIT_SYSTEM
 }
